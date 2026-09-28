@@ -1,0 +1,18 @@
+# Data Manipulation & EDA
+pandas
+numpy
+matplotlib
+seaborn
+
+# Notebook Environment
+jupyterlab
+ipykernel
+
+# Machine Learning Pipeline & Tuning
+scikit-learn
+xgboost
+lightgbm
+optuna
+
+# Explainability
+shap
