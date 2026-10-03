@@ -217,11 +217,13 @@ Aggregate the signals from all three method categories:
 
 Build three final feature sets:
 
-| Dataset | Size | Built From | Used By |
+| Dataset | Actual Size | Built From | Used By |
 |---|---|---|---|
-| `X_strict` | ~60–80 | Lasso non-zero + VIF-cleaned | OLS |
-| `X_mid` | ~100 | RFECV optimal set | Ridge, SVR-RBF |
-| `X_full` | ~150 | Top RF importance features | Random Forest, LightGBM, **K-Means** |
+| `X_strict` | 68 features | RFECV optimal set (Wrapper) | OLS |
+| `X_mid` | 172 features | Lasso non-zero (Embedded) | Ridge, SVR-RBF |
+| `X_full` | 150 features | Top RF importance features | Random Forest, LightGBM, **K-Means** |
+
+> **Note on Naming vs Reality:** When this plan was drafted, we assumed RFECV would yield ~100 features (`mid`) and Lasso would yield ~70 (`strict`). In reality, RFECV was much stricter (68 features), and Lasso was much more forgiving (172 features). As a result, the `X_mid` file is technically our largest dataset, but it is mathematically the correct set to use for Ridge Regression.
 
 ```python
 # Apply column selection to test set — no statistics from test set

@@ -1,6 +1,6 @@
 # Ames Housing Project: Progress Summary
 
-**Last Updated:** 2026-09-28
+**Last Updated:** 2026-10-03
 
 ---
 
@@ -86,11 +86,31 @@ All steps executed in [`02_Data_Preprocessing.ipynb`](notebooks/02_Data_Preproce
 
 ---
 
-## 7. 🔜 Next Steps
+## 7. ✅ Feature Selection & Dimensionality Reduction — COMPLETE
+> Full rationale documented in [`Feature_Selection_Plan.md`](Feature_Selection_Plan.md)
 
-- [ ] **Notebook 03:** Market Segmentation & Clustering (K-Means / DBSCAN on engineered features)
-- [ ] **Notebook 04:** Feature Engineering & Selection (SHAP, RFE, Lasso-based elimination)
-- [ ] **Notebook 05:** Pricing Engine Modeling (Ridge, Lasso, XGBoost, LightGBM — with Optuna HPO)
+All steps executed in [`03_Feature_Selection.ipynb`](notebooks/03_Feature_Selection.ipynb) to safely reduce the 214 preprocessed features into optimal, model-specific datasets.
+
+* **Method 1 – Filter Methods:** Removed exact duplicate columns and used VIF (Variance Inflation Factor) to flag/remove severe multicollinearity.
+* **Method 2 – Embedded Methods:** 
+  * Used **LassoCV (L1 Regularization)** to force useless linear features to exactly zero.
+  * Used **Random Forest Importance** to rank non-linear signals.
+* **Method 3 – Wrapper Methods:**
+  * Executed **RFECV** (Recursive Feature Elimination with Cross-Validation) to mathematically prove the optimal number of features (~100).
+* **Final Model-to-Feature Mapping (The Rationale):**
+  * `X_strict` (~60-80 features) → **OLS:** Cleaned of all multicollinearity and noise, as OLS is mathematically fragile.
+  * `X_mid` (~100 features) → **Ridge & SVR:** Balances L2 regularization strengths while removing pure noise to avoid the curse of dimensionality.
+  * `X_full` (~150 features) → **Random Forest, LightGBM, K-Means:** Tree models are immune to collinearity and need the maximum amount of signal to find non-linear interactions. Bottom 60 garbage features were pruned to prevent "split dilution" and micro-overfitting.
+
+**Final Datasets saved to:** `data/final_for_modeling/`
+
+---
+
+## 8. 🔜 Next Steps
+
+- [ ] **Notebook 04:** Pricing Engine Modeling (OLS, Ridge, SVR, RF, LightGBM — with Optuna HPO)
+- [ ] **Notebook 05:** Market Segmentation & Clustering (Secondary Lens)
+- [ ] **Final UI Feature Selection:** Extract SHAP values to select the top 10-15 human-readable features for the seller UI.
 
 ---
 
@@ -100,12 +120,34 @@ All steps executed in [`02_Data_Preprocessing.ipynb`](notebooks/02_Data_Preproce
 |---|---|---|
 | `notebooks/01_Exploratory_Data_Analysis.ipynb` | Full EDA notebook | ✅ Complete |
 | `notebooks/02_Data_Preprocessing.ipynb` | Full preprocessing pipeline | ✅ Complete |
-| `notebooks/03_Market_Segmentation_Clustering.ipynb` | Clustering notebook | 🔜 Next |
-| `notebooks/04_Feature_Engineering_and_Selection.ipynb` | Feature selection | 🔜 Upcoming |
-| `notebooks/05_Pricing_Engine_Modeling.ipynb` | Modeling & evaluation | 🔜 Upcoming |
+| `notebooks/03_Feature_Selection.ipynb` | Advanced Feature Selection pipeline | ✅ Complete |
+| `notebooks/04_Pricing_Engine_Modeling.ipynb` | Regression Modeling & evaluation | 🔜 Next |
+| `notebooks/05_Market_Segmentation_Clustering.ipynb` | Clustering notebook | 🔜 Upcoming |
 | `EDA_Report.md` | Comprehensive EDA findings report | ✅ Generated |
 | `Preprocessing_Report.md` | Comprehensive preprocessing pipeline report | ✅ Generated |
-| `data/processed/X_train_scaled.csv` | Cleaned, encoded, scaled training features | ✅ Ready |
-| `data/processed/X_test_scaled.csv` | Cleaned, encoded, scaled test features | ✅ Ready |
-| `data/processed/y_train.csv` | Log-transformed training target | ✅ Ready |
-| `data/processed/y_test.csv` | Log-transformed test target | ✅ Ready |
+| `Feature_Selection_Plan.md` | Rationale & Model Mapping logic | ✅ Generated |
+| `data/final_for_modeling/X_train_*.csv` | Cleaned, selected training features (strict/mid/full) | ✅ Ready |
+| `data/final_for_modeling/X_test_*.csv` | Cleaned, selected test features (strict/mid/full) | ✅ Ready |
+---
+
+## Phase 4: Modeling (Notebook 04a - OLS Baseline)
+**Finalized:** 2026-10-03 | **Status:** Completed
+
+### 1. The OLS Baseline (`X_strict`)
+We trained a standard Ordinary Least Squares (OLS) model on the `X_strict` dataset (68 features filtered via Lasso and VIF). 
+* **Metrics:** Train R²: 0.904 | Test R²: 0.854 | Test MAE: ~$20,727 (11.6% Error).
+* **The Good (Interpretability):** The coefficients were structurally sound and business-ready. The model learned that an increase in `OverallQual` adds ~$16,400, and a larger `BsmtFinSF1` adds ~$22,500.
+* **The Bad (Accuracy Ceiling):** A $20k average error is too high for a production valuation engine. Furthermore, a massive gap between MAE ($20k) and RMSE ($33k) proved that OLS (which can only draw straight lines) is making highly expensive mistakes on luxury outlier homes.
+
+### 2. The Multicollinearity Experiment (`X_all`)
+To prove the necessity of Feature Selection, we bypassed `X_strict` and fed OLS the raw, un-filtered 214-feature dataset. 
+* **The Result:** The model suffered a mathematical meltdown. OLS attempted to balance overlapping features (like `TotalBath` vs `FullBath`) by assigning them wildly inflated, opposing coefficients (e.g., penalizing a house -$128,000 for its TotalBath score, while crediting +$95,000 for FullBath). 
+* **The Verdict:** While predictive metrics (R²) seemed okay, the model became a "black box of garbage." Stakeholders cannot trust a model whose pricing logic is structurally broken.
+
+### 3. Key Takeaway & Pivot
+This notebook perfectly demonstrated the **Interpretability vs. Accuracy Trade-off**:
+1. To keep OLS structurally sound (interpretable), we had to delete 146 features (`X_strict`). 
+2. But deleting 146 features meant throwing away real market nuance, hitting a hard ceiling on predictive accuracy.
+3. **Next Step:** We need an algorithm that can use the larger datasets (`X_mid` / `X_full`) to gain accuracy, but has a mathematical defense mechanism against the "Exploding Bathroom" multicollinearity problem. We pivot to **Ridge Regression (L2 Regularization)** in Notebook 04b.
+
+* **Note on Dataset Sizes:** Updated `Feature_Selection_Plan.md` to reflect that `X_mid` (Lasso) actually contains 172 features, and `X_strict` (RFECV) contains 68 features, correcting a naming convention error from Phase 3.
