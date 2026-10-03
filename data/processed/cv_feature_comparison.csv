@@ -1,0 +1,6 @@
+,Features,CV RMSE,Std
+Wrapper — RFECV,68.0,26088.54051,1373.42462
+Embedded — RF Importance,150.0,28016.34859,1559.25842
+Embedded — Lasso,183.0,28444.50232,1810.70872
+Baseline (All features),213.0,28792.44529,2012.5058
+Filter Method,126.0,29341.31004,2217.86338
