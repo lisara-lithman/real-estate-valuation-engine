@@ -215,24 +215,4 @@ python app.py
 ```
 Open your browser at `http://127.0.0.1:7860`.
 
----
 
-## 💼 LinkedIn Showcase Pitch (Copy & Share)
-
-> 🚀 **Excited to share my latest machine learning project: The Dual-Lens Real Estate Valuation & Market Intelligence Engine!**
->
-> In real estate tech, pricing algorithms often fail because they output numbers without risk controls. In 2021, Zillow lost \$880M because their AI lacked confidence boundaries.
->
-> To solve this, I designed an end-to-end ML platform built on two synergistic lenses:
-> 🔹 **Primary Lens (Predictive):** A 5-model Stacking Meta-Ensemble (Ridge, SVR, Random Forest, LightGBM, CatBoost) achieving an $R^2$ of **0.9140** and a Test MAE of **\$14,419**.
-> 🔹 **Secondary Lens (Diagnostic):** Unsupervised market clustering (K-Means, DBSCAN, Hierarchical Ward Linkage) segmenting homes into Starter, Mid-Market, and Luxury tiers.
->
-> On top of the ML foundation, I engineered two automated business products:
-> 🚦 **Traffic Light Listing Triage:** Audits inter-model ensemble variance to classify properties into Instant Auto-Pricing (🟢 Green), Junior Review (🟡 Yellow), or Human Appraisal Override (🔴 Red).
-> 🔨 **Renovation ROI Advisor:** Calculates dynamic financial return on home upgrades, preventing sellers from overcapitalizing in price-capped neighborhoods.
->
-> 💻 Complete with a live Gradio web dashboard, reproducible pipelines, and an exhaustive 40-page technical defense report.
->
-> 🔗 **GitHub Repository:** https://github.com/lisara-lithman/real-estate-valuation-engine
->
-> #MachineLearning #DataScience #Python #ArtificialIntelligence #PropTech #EnsembleLearning #PortfolioProject
